@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Meat Mart Nepal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<style>
+body { overflow: auto; }
+.login-page { min-height: 100vh; }
+.dots-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background-image: radial-gradient(circle, rgba(220,53,69,0.08) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+}
+.login-card { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+<div class="dots-bg"></div>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark">🥩</div>
+      <div class="login-title">Meat Mart Nepal</div>
+      <div class="login-sub">Retail Management System</div>
+    </div>
+
+    <div id="loginError" class="login-error"></div>
+
+    <div class="login-form">
+      <div class="fgrp">
+        <label class="flbl">Email Address</label>
+        <input class="finp" type="email" id="loginEmail" placeholder="admin@meatmart.np" autocomplete="email">
+      </div>
+      <div class="fgrp">
+        <label class="flbl">Password</label>
+        <input class="finp" type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;margin-top:4px;justify-content:center" onclick="doLogin()" id="loginBtn">
+        Sign In
+      </button>
+    </div>
+
+    <div class="login-footer">
+      <div style="margin-bottom:8px">Demo credentials:</div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div>Admin: <strong>admin@meatmart.np</strong> / <strong>Admin@1234</strong></div>
+        <div style="color:var(--text4)">Manager: sushil@meatmart.np / Admin@1234</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+// If already logged in, redirect
+if (Auth.isLoggedIn()) window.location.href = 'index.html';
+
+document.getElementById('loginEmail').addEventListener('keydown', e => e.key === 'Enter' && document.getElementById('loginPass').focus());
+document.getElementById('loginPass').addEventListener('keydown', e => e.key === 'Enter' && doLogin());
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  const btn   = document.getElementById('loginBtn');
+
+  if (!email || !pass) {
+    errEl.textContent = 'Please enter email and password';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+  errEl.classList.remove('show');
+
+  try {
+    const data = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+
+    if (!data.ok) {
+      const err = await data.json();
+      throw new Error(err.error || 'Login failed');
+    }
+
+    const json = await data.json();
+    Auth.setSession(json);
+    window.location.href = 'index.html';
+  } catch (err) {
+    // Demo mode fallback — allow login without backend
+    if (err.message === 'Failed to fetch' || err.message.includes('fetch')) {
+      // Offline demo login
+      const DEMO_USERS = {
+        'admin@meatmart.np':   { id:1, full_name:'Prashant (Admin)', email:'admin@meatmart.np',   role:'admin',      branch_id:null, branch_name:'All Branches' },
+        'sushil@meatmart.np':  { id:2, full_name:'Sushil Thapa',      email:'sushil@meatmart.np',  role:'manager',    branch_id:2, branch_name:'Baneshwor' },
+        'ram@meatmart.np':     { id:3, full_name:'Ram Kumar',          email:'ram@meatmart.np',     role:'cashier',    branch_id:2, branch_name:'Baneshwor' },
+        'gopal@meatmart.np':   { id:4, full_name:'Gopal Rai',          email:'gopal@meatmart.np',   role:'storekeeper',branch_id:3, branch_name:'Kalanki' },
+      };
+      const user = DEMO_USERS[email.toLowerCase()];
+      if (user && pass === 'Admin@1234') {
+        const mockBranches = [
+          {id:null,name:'All Branches',is_active:true},
+          {id:2,name:'Baneshwor',address:'Baneshwor Chowk, Kathmandu',is_active:true},
+          {id:3,name:'Kalanki',address:'Kalanki Chowk, Kathmandu',is_active:true},
+          {id:4,name:'Patan',address:'Mangal Bazar, Lalitpur',is_active:true},
+        ];
+        Auth.setSession({
+          accessToken: 'demo_token_' + Date.now(),
+          refreshToken: 'demo_refresh_' + Date.now(),
+          user,
+          branches: user.role === 'admin' ? mockBranches : []
+        });
+        window.location.href = 'index.html';
+        return;
+      }
+      errEl.textContent = 'Invalid email or password';
+    } else {
+      errEl.textContent = err.message;
+    }
+    errEl.classList.add('show');
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

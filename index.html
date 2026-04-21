@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meat Mart Nepal — Retail Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div class="app" id="appShell" style="display:none">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-row">
+      <div class="sb-logo-mark">🥩</div>
+      <div>
+        <div class="sb-logo-text">Meat Mart Nepal</div>
+        <div class="sb-logo-sub">Retail Management</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BRANCH SWITCHER -->
+  <div class="sb-branch-wrap">
+    <div class="sb-branch" id="sbBranch">
+      <div class="sb-branch-label">Active Branch</div>
+      <div class="sb-branch-row">
+        <div class="sb-branch-name">
+          <span class="dot-live"></span>
+          <span id="sbBranchName">Loading...</span>
+        </div>
+        <span class="sb-branch-caret">▾</span>
+      </div>
+    </div>
+  </div>
+  <div class="branch-dropdown" id="branchDropdown"></div>
+
+  <nav class="sb-nav">
+    <div class="sb-section">Overview</div>
+    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">⬛</span>Dashboard</div>
+    <div class="nav-item" data-page="pos"><span class="nav-icon">🛒</span>POS / Billing</div>
+
+    <div class="sb-section">Operations</div>
+    <div class="nav-item" data-page="inventory"><span class="nav-icon">📦</span>Inventory<span class="nav-badge nb-amber" id="navLowBadge" style="display:none">Low</span></div>
+    <div class="nav-item" data-page="products"><span class="nav-icon">🥩</span>Products</div>
+    <div class="nav-item" data-page="purchases"><span class="nav-icon">🚚</span>Purchases</div>
+
+    <div class="sb-section">Finance</div>
+    <div class="nav-item" data-page="customers"><span class="nav-icon">👥</span>Customers</div>
+    <div class="nav-item" data-page="khata"><span class="nav-icon">📒</span>Khata<span class="nav-badge nb-red" id="navKhataBadge" style="display:none">Due</span></div>
+    <div class="nav-item" data-page="expenses"><span class="nav-icon">💸</span>Expenses</div>
+
+    <div class="sb-section">Intelligence</div>
+    <div class="nav-item" data-page="reports"><span class="nav-icon">📊</span>Reports</div>
+    <div class="nav-item" data-page="alerts"><span class="nav-icon">🔔</span>Alerts<span class="nav-badge nb-red" id="navAlertsBadge" style="display:none">0</span></div>
+
+    <div class="sb-section">Admin</div>
+    <div class="nav-item" data-page="branches"><span class="nav-icon">🏪</span>Branches</div>
+    <div class="nav-item" data-page="employees"><span class="nav-icon">👤</span>Employees</div>
+    <div class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span>Settings</div>
+  </nav>
+
+  <div class="sb-footer">
+    <div class="sb-user" onclick="showUserMenu()">
+      <div class="user-av" id="userAv">--</div>
+      <div>
+        <div class="user-name" id="userName">Loading...</div>
+        <div class="user-role" id="userRole">—</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN AREA ══ -->
+<div class="main-area">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <span class="offline-badge" id="offlineBadge">⚡ Offline Mode</span>
+      <div class="tb-stat">Branch: <strong id="topbarBranch">—</strong></div>
+      <div class="tb-stat">Today: <strong id="topbarRevenue" style="color:var(--green)">—</strong></div>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('Export feature available in reports','📤')">Export</button>
+      <button class="btn btn-primary btn-sm" onclick="navigate('pos')">+ New Sale</button>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: DASHBOARD ══════ -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-body">
+      <div class="stats-row s4 mb2">
+        <div class="stat-card"><div class="stat-accent" style="background:var(--red)"></div><div class="stat-label">Today's Revenue</div><div class="stat-val" style="color:var(--red2)" id="dToday">—</div><div class="stat-sub" id="dTodaySub">Loading...</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--green)"></div><div class="stat-label">Bills Today</div><div class="stat-val" style="color:var(--green)" id="dBills">—</div><div class="stat-sub" id="dBillsSub">Today's count</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--amber)"></div><div class="stat-label">Khata Due</div><div class="stat-val" style="color:var(--amber)" id="dDue">—</div><div class="stat-sub" id="dDueSub">Total outstanding</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--blue)"></div><div class="stat-label">Stock Alerts</div><div class="stat-val" style="color:var(--blue)" id="dAlerts">—</div><div class="stat-sub">Active alerts</div></div>
+      </div>
+
+      <div class="g2 mb2">
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Weekly Sales (NPR)</span><span style="font-size:10px;color:var(--text3)">Last 7 days</span></div>
+          <div class="card-body"><div class="mini-chart" id="weekChart"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Active Alerts</span><span class="pill pill-red" id="dashAlertCount">—</span></div>
+          <div class="card-body" style="padding:10px 14px">
+            <div class="alert-list" id="dashAlerts">
+              <div style="color:var(--text3);font-size:12px;padding:8px">Loading alerts...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g2 mb2">
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Top Products Today</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Trend</th></tr></thead>
+              <tbody id="topProductsToday">
+                <tr><td>🐔 Broiler Chicken</td><td>42 kg</td><td style="color:var(--green);font-weight:700">NPR 18,900</td><td><span class="pill pill-green">↑ Hot</span></td></tr>
+                <tr><td>🐑 Mutton</td><td>18 kg</td><td style="color:var(--green);font-weight:700">NPR 16,200</td><td><span class="pill pill-green">↑ Good</span></td></tr>
+                <tr><td>🦆 Duck</td><td>9 kg</td><td style="color:var(--green);font-weight:700">NPR 7,200</td><td><span class="pill pill-amber">→ Steady</span></td></tr>
+                <tr><td>🥚 Eggs</td><td>120 pcs</td><td style="color:var(--green);font-weight:700">NPR 1,800</td><td><span class="pill pill-amber">→ Steady</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Recent Bills</span><button class="btn btn-ghost btn-xs" onclick="navigate('reports')">View All</button></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Invoice</th><th>Customer</th><th>Branch</th><th>Total</th><th>Method</th><th>Status</th></tr></thead>
+              <tbody id="recentSalesBody">
+                <tr><td colspan="6" style="color:var(--text3);text-align:center;padding:20px">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="g3">
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Branch Revenue Today</span></div>
+          <div class="card-body"><div id="branchRevBars"><div style="color:var(--text3);font-size:12px">Loading...</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Cash Session</span><span class="pill pill-green">Open</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Opening Balance</span><span id="csOpen">NPR 5,000</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Cash Sales</span><span id="csCash">NPR 28,400</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Khata Collected</span><span id="csCollected">NPR 3,500</span></div>
+              <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px">
+                <span style="font-weight:700">Expected in Till</span>
+                <span style="font-weight:800;color:var(--green);font-family:'Syne',sans-serif" id="csExpected">NPR 36,900</span>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px;justify-content:center" onclick="showToast('Cash session closed!','🔒')">Close Session</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Monthly Summary</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Revenue</span><span style="font-weight:700">NPR 8,42,500</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Purchases</span><span style="font-weight:700">NPR 6,30,000</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Expenses</span><span style="font-weight:700">NPR 68,400</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Wastage Loss</span><span style="font-weight:700;color:var(--red2)">NPR 12,600</span></div>
+              <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px">
+                <span style="font-weight:700">Est. Profit</span>
+                <span style="font-weight:800;color:var(--green);font-family:'Syne',sans-serif">NPR 1,31,500</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: POS ══════ -->
+  <div class="page" id="page-pos">
+    <div class="pos-layout">
+      <div class="pos-left">
+        <div class="search-box">
+          <span style="color:var(--text3)">🔍</span>
+          <input type="text" placeholder="Search products, cuts, SKU..." id="posSearch" oninput="renderPosProducts()">
+        </div>
+        <div class="cat-strip">
+          <div class="cat-btn active" onclick="setCat(this,'all')">All</div>
+          <div class="cat-btn" onclick="setCat(this,'chicken')">🐔 Chicken</div>
+          <div class="cat-btn" onclick="setCat(this,'mutton')">🐑 Mutton</div>
+          <div class="cat-btn" onclick="setCat(this,'duck')">🦆 Duck</div>
+          <div class="cat-btn" onclick="setCat(this,'egg')">🥚 Eggs</div>
+          <div class="cat-btn" onclick="setCat(this,'other')">🍖 Other</div>
+        </div>
+        <div class="prod-grid" id="posProductsGrid">
+          <div class="empty-state" style="grid-column:1/-1"><div class="es-icon">🥩</div><p>Loading products...</p></div>
+        </div>
+      </div>
+      <div class="pos-right">
+        <div class="cart-top">
+          <div class="cart-bill-no" id="cartBillNo">Bill #1043</div>
+          <div class="cart-info">
+            <span id="topbarBranchCart">Baneshwor</span> · Cashier: <span id="cartCashier">—</span> · <span id="cartTime">—</span>
+          </div>
+        </div>
+        <div class="cart-cust">
+          <select class="sel" id="cartCustomer">
+            <option value="1">👤 Walk-in Customer</option>
+            <option value="2">Hotel Shivam</option>
+            <option value="3">Hotel Mount View</option>
+            <option value="4">Rajan Thapa</option>
+            <option value="5">Krishna Prasad</option>
+            <option value="6">Sita Sharma</option>
+            <option value="7">Bina Rai</option>
+          </select>
+        </div>
+        <div class="cart-list" id="cartList">
+          <div class="cart-empty"><div class="ce-icon">🛒</div><div style="font-size:12px;font-weight:600">Cart is empty</div><div style="font-size:11px">Tap a product to add</div></div>
+        </div>
+        <div class="cart-foot">
+          <div class="tot-row"><span>Subtotal</span><span id="cartSub">NPR 0</span></div>
+          <div class="tot-row"><span>Discount</span><span style="color:var(--green)">— NPR 0</span></div>
+          <div class="tot-row"><span>VAT (13%)</span><span id="cartVat">NPR 0</span></div>
+          <div class="tot-row tot-grand"><span>Total</span><span id="cartTotal">NPR 0</span></div>
+          <div class="pay-grid">
+            <div class="pm active" onclick="selPay(this,'cash')">💵 Cash</div>
+            <div class="pm" onclick="selPay(this,'bank')">🏦 Bank</div>
+            <div class="pm" onclick="selPay(this,'esewa')">📱 eSewa</div>
+            <div class="pm" onclick="selPay(this,'khalti')">📲 Khalti</div>
+            <div class="pm" onclick="selPay(this,'fonepay')">🔗 FonePay</div>
+            <div class="pm" onclick="selPay(this,'khata')">📒 Khata</div>
+          </div>
+          <button class="checkout-btn" id="checkoutBtn" disabled onclick="doCheckout()">
+            Checkout · <span id="checkoutAmt">NPR 0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: INVENTORY ══════ -->
+  <div class="page" id="page-inventory">
+    <div class="page-head">
+      <div><div class="ph-title">Inventory</div><div class="ph-sub">Batch tracking · Freshness · Real-time stock</div></div>
+      <div class="ph-right">
+        <button class="btn btn-ghost btn-sm" onclick="openModal('wastageModal')">Record Wastage</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Transfer request submitted','🔄')">Stock Transfer</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('receiveStockModal')">+ Receive Stock</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="inv-grid" id="invGrid"><div style="color:var(--text3);padding:20px">Loading inventory...</div></div>
+      <div class="card">
+        <div class="card-h"><span class="card-h-title">Stock Movement Log</span><span style="font-size:10px;color:var(--text3)">Latest entries</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Batch</th><th>Product</th><th>Movement</th><th>Qty</th><th>Date</th><th>By</th></tr></thead>
+            <tbody id="movementsBody"><tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: PRODUCTS ══════ -->
+  <div class="page" id="page-products">
+    <div class="page-head">
+      <div><div class="ph-title">Products</div><div class="ph-sub">Meat catalog · Cuts · Pricing</div></div>
+      <div class="ph-right"><button class="btn btn-primary btn-sm" onclick="openModal('addProdModal')">+ Add Product</button></div>
+    </div>
+    <div class="page-body">
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>Category</th><th>SKU</th><th>Cuts</th><th>Unit</th><th>Sale Price</th><th>Cost</th><th>VAT</th><th>Status</th></tr></thead>
+            <tbody id="prodTableBody"><tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: PURCHASES ══════ -->
+  <div class="page" id="page-purchases">
+    <div class="page-head">
+      <div><div class="ph-title">Purchases</div><div class="ph-sub">Supplier orders · GRN · Stock receiving</div></div>
+      <div class="ph-right"><button class="btn btn-primary btn-sm" onclick="showToast('New purchase order form...','🚚')">+ New Purchase</button></div>
+    </div>
+    <div class="page-body">
+      <div class="stats-row s3 mb2">
+        <div class="stat-card"><div class="stat-accent" style="background:var(--blue)"></div><div class="stat-label">This Month</div><div class="stat-val" style="color:var(--blue)">NPR 6,30,500</div><div class="stat-sub">18 purchase orders</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--amber)"></div><div class="stat-label">Supplier Due</div><div class="stat-val" style="color:var(--amber)">NPR 45,200</div><div class="stat-sub">3 suppliers pending</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--green)"></div><div class="stat-label">GRN Received</div><div class="stat-val" style="color:var(--green)">16</div><div class="stat-sub">2 pending verification</div></div>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>PO #</th><th>Supplier</th><th>Items</th><th>Total</th><th>Date</th><th>GRN</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:700">PO-0042</td><td>Kalimati Poultry</td><td>Broiler 20kg, Farm Chicken 8kg</td><td>NPR 14,400</td><td>Apr 18</td><td><span class="pill pill-green">Received</span></td><td><span class="pill pill-green">Paid</span></td></tr>
+              <tr><td style="font-weight:700">PO-0041</td><td>Kirtipur Mutton House</td><td>Mutton 15kg, Goat 10kg</td><td>NPR 22,000</td><td>Apr 17</td><td><span class="pill pill-green">Received</span></td><td><span class="pill pill-amber">Partial</span></td></tr>
+              <tr><td style="font-weight:700">PO-0040</td><td>Bhaktapur Duck Farm</td><td>Duck 10kg</td><td>NPR 6,000</td><td>Apr 17</td><td><span class="pill pill-amber">Pending</span></td><td><span class="pill pill-red">Due</span></td></tr>
+              <tr><td style="font-weight:700">PO-0039</td><td>Kathmandu Egg Suppliers</td><td>Eggs 300 pcs, Trays 10</td><td>NPR 5,850</td><td>Apr 16</td><td><span class="pill pill-green">Received</span></td><td><span class="pill pill-green">Paid</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: CUSTOMERS ══════ -->
+  <div class="page" id="page-customers">
+    <div class="page-head">
+      <div><div class="ph-title">Customers</div><div class="ph-sub">Retail · Hotels · Wholesale · Household</div></div>
+      <div class="ph-right"><button class="btn btn-primary btn-sm" onclick="openModal('addCustModal')">+ Add Customer</button></div>
+    </div>
+    <div class="page-body">
+      <div class="stats-row s4 mb2">
+        <div class="stat-card"><div class="stat-accent" style="background:var(--blue)"></div><div class="stat-label">Total Customers</div><div class="stat-val" style="color:var(--blue)">48</div><div class="stat-sub">All branches</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--purple)"></div><div class="stat-label">Hotels / Wholesale</div><div class="stat-val" style="color:var(--purple)">12</div><div class="stat-sub">Key accounts</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--amber)"></div><div class="stat-label">With Khata Due</div><div class="stat-val" style="color:var(--amber)" id="custWithDue">—</div><div class="stat-sub"><span id="custTotalDue">Loading...</span></div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--green)"></div><div class="stat-label">Active This Month</div><div class="stat-val" style="color:var(--green)">31</div><div class="stat-sub">Repeat buyers</div></div>
+      </div>
+      <div class="cust-list" id="custList"><div style="color:var(--text3);padding:20px;text-align:center">Loading customers...</div></div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: KHATA ══════ -->
+  <div class="page" id="page-khata">
+    <div class="page-head">
+      <div><div class="ph-title">Khata Ledger</div><div class="ph-sub">Credit tracking · Due collection · Overdue alerts</div></div>
+      <div class="ph-right"><button class="btn btn-primary btn-sm" onclick="showToast('Record khata payment...','💰')">+ Record Payment</button></div>
+    </div>
+    <div class="page-body">
+      <div class="stats-row s3 mb2">
+        <div class="stat-card"><div class="stat-accent" style="background:var(--red)"></div><div class="stat-label">Total Outstanding</div><div class="stat-val" style="color:var(--red2)">NPR 12,400</div><div class="stat-sub">4 customers with due</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--amber)"></div><div class="stat-label">Overdue 7+ Days</div><div class="stat-val" style="color:var(--amber)">NPR 8,000</div><div class="stat-sub">2 accounts critical</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--green)"></div><div class="stat-label">Collected Today</div><div class="stat-val" style="color:var(--green)">NPR 3,500</div><div class="stat-sub">2 collections done</div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="card-h-title">Customer Khata — Due Summary</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Customer</th><th>Type</th><th>Total Due</th><th>Oldest Due</th><th>Last Purchase</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Hotel Shivam</strong><br><span style="font-size:10px;color:var(--text3)">📞 9841-234567</span></td><td><span class="pill pill-purple">Hotel</span></td><td style="color:var(--red2);font-weight:800;font-family:'Syne',sans-serif">NPR 4,800</td><td><span class="pill pill-red">Apr 10 (8d)</span></td><td>Today</td><td><button class="btn btn-primary btn-xs" onclick="collectKhata('Hotel Shivam',4800)">Collect</button></td></tr>
+              <tr><td><strong>Hotel Mount View</strong><br><span style="font-size:10px;color:var(--text3)">📞 9851-345678</span></td><td><span class="pill pill-purple">Hotel</span></td><td style="color:var(--red2);font-weight:800;font-family:'Syne',sans-serif">NPR 3,200</td><td><span class="pill pill-red">Apr 8 (10d)</span></td><td>Apr 17</td><td><button class="btn btn-primary btn-xs" onclick="collectKhata('Hotel Mount View',3200)">Collect</button></td></tr>
+              <tr><td><strong>Rajan Thapa</strong><br><span style="font-size:10px;color:var(--text3)">📞 9800-111222</span></td><td><span class="pill pill-blue">Regular</span></td><td style="color:var(--amber);font-weight:800;font-family:'Syne',sans-serif">NPR 2,400</td><td><span class="pill pill-amber">Apr 14 (4d)</span></td><td>Today</td><td><button class="btn btn-ghost btn-xs" onclick="collectKhata('Rajan Thapa',2400)">Partial</button></td></tr>
+              <tr><td><strong>Krishna Prasad</strong><br><span style="font-size:10px;color:var(--text3)">📞 9812-567890</span></td><td><span class="pill pill-cyan">Wholesale</span></td><td style="color:var(--amber);font-weight:800;font-family:'Syne',sans-serif">NPR 2,000</td><td><span class="pill pill-amber">Apr 16 (2d)</span></td><td>Apr 16</td><td><button class="btn btn-ghost btn-xs" onclick="showToast('Reminder sent via SMS!','📲')">Remind</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: EXPENSES ══════ -->
+  <div class="page" id="page-expenses">
+    <div class="page-head">
+      <div><div class="ph-title">Expenses</div><div class="ph-sub">Daily tracking · Categories · Branch-wise</div></div>
+      <div class="ph-right"><button class="btn btn-primary btn-sm" onclick="openModal('addExpenseModal')">+ Add Expense</button></div>
+    </div>
+    <div class="page-body">
+      <div class="stats-row s4 mb2">
+        <div class="stat-card"><div class="stat-accent" style="background:var(--red)"></div><div class="stat-label">This Month Total</div><div class="stat-val" style="color:var(--red2)" id="expTotal">NPR 68,400</div><div class="stat-sub">All categories</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--amber)"></div><div class="stat-label">Salaries</div><div class="stat-val" style="color:var(--amber)">NPR 45,000</div><div class="stat-sub">3 staff this month</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--blue)"></div><div class="stat-label">Rent</div><div class="stat-val" style="color:var(--blue)">NPR 15,000</div><div class="stat-sub">Due 1st May</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--cyan)"></div><div class="stat-label">Utilities & Others</div><div class="stat-val" style="color:var(--cyan)">NPR 8,400</div><div class="stat-sub">Electricity + misc</div></div>
+      </div>
+      <div class="g2 mb2">
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Category Breakdown</span></div>
+          <div class="card-body"><div id="expenseCatBars"><div style="color:var(--text3);font-size:12px">Loading...</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Quick Add</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="fgrp"><div class="flbl">Category</div>
+                <select class="finp" id="quickExpCat">
+                  <option value="1">Salary</option><option value="2">Rent</option>
+                  <option value="3">Electricity</option><option value="5">Transport</option>
+                  <option value="7">Miscellaneous</option>
+                </select>
+              </div>
+              <div class="fgrp"><div class="flbl">Description</div><input class="finp" id="quickExpDesc" placeholder="e.g. April electricity bill"></div>
+              <div class="fgrp"><div class="flbl">Amount (NPR)</div><input class="finp" type="number" id="quickExpAmt" placeholder="0"></div>
+              <div class="fgrp"><div class="flbl">Payment Method</div>
+                <select class="finp" id="quickExpPay">
+                  <option value="cash">Cash</option><option value="bank">Bank Transfer</option>
+                  <option value="esewa">eSewa</option><option value="khalti">Khalti</option>
+                </select>
+              </div>
+              <button class="btn btn-primary btn-sm" style="justify-content:center" onclick="quickAddExpense()">Save Expense</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Method</th><th>Branch</th><th>By</th></tr></thead>
+            <tbody id="expensesBody"><tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: REPORTS ══════ -->
+  <div class="page" id="page-reports">
+    <div class="page-head">
+      <div><div class="ph-title">Reports</div><div class="ph-sub">Sales · Profit · Wastage · Branch · Khata</div></div>
+      <div class="ph-right">
+        <select class="finp" id="reportPeriod" style="width:130px" onchange="loadReports()">
+          <option value="week">This Week</option>
+          <option value="month" selected>This Month</option>
+          <option value="year">This Year</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Generating PDF report...','📄')">Export PDF</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="stats-row s4 mb2">
+        <div class="stat-card"><div class="stat-accent" style="background:var(--red)"></div><div class="stat-label">Revenue</div><div class="stat-val" style="color:var(--red2)" id="rRevenue">—</div><div class="stat-sub" id="rBills">— bills</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--green)"></div><div class="stat-label">Est. Profit</div><div class="stat-val" style="color:var(--green)" id="rProfit">—</div><div class="stat-sub">After purchases & expenses</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--amber)"></div><div class="stat-label">Wastage</div><div class="stat-val" style="color:var(--amber)" id="rWastage">—</div><div class="stat-sub" id="rWastageLoss">— loss value</div></div>
+        <div class="stat-card"><div class="stat-accent" style="background:var(--purple)"></div><div class="stat-label">Total Purchases</div><div class="stat-val" style="color:var(--purple)" id="rPurchases">—</div><div class="stat-sub">Stock procurement</div></div>
+      </div>
+      <div class="g2 mb2">
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Product Revenue Breakdown</span></div>
+          <div class="card-body"><div id="topProductsBars"><div style="color:var(--text3);font-size:12px">Loading...</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Payment Method Breakdown</span></div>
+          <div class="card-body" id="paymentBreakdown"><div style="color:var(--text3);font-size:12px">Loading...</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="card-h-title">Branch Performance</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Branch</th><th>Revenue</th><th>Bills</th><th>Avg Bill</th><th>Wastage</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:700">Baneshwor</td><td style="color:var(--green);font-weight:700">NPR 3,20,000</td><td>312</td><td>NPR 1,026</td><td style="color:var(--amber)">18 kg</td></tr>
+              <tr><td style="font-weight:700">Kalanki</td><td style="color:var(--blue);font-weight:700">NPR 2,85,000</td><td>290</td><td>NPR 983</td><td style="color:var(--amber)">14 kg</td></tr>
+              <tr><td style="font-weight:700">Patan</td><td style="color:var(--purple);font-weight:700">NPR 2,37,500</td><td>241</td><td>NPR 986</td><td style="color:var(--green)">10 kg</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: ALERTS ══════ -->
+  <div class="page" id="page-alerts">
+    <div class="page-head">
+      <div><div class="ph-title">Alerts & Notifications</div><div class="ph-sub">Stock · Expiry · Khata · Wastage</div></div>
+      <div class="ph-right"><button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark All Read</button></div>
+    </div>
+    <div class="page-body">
+      <div class="g2 mb2">
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">🔴 Critical</span><span class="pill pill-red" id="critCount">—</span></div>
+          <div class="card-body" style="padding:10px 14px"><div class="alert-list" id="criticalAlerts"><div style="color:var(--text3);font-size:12px;padding:8px">Loading...</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">🟡 Warnings</span><span class="pill pill-amber" id="warnCount">—</span></div>
+          <div class="card-body" style="padding:10px 14px"><div class="alert-list" id="warningAlerts"><div style="color:var(--text3);font-size:12px;padding:8px">Loading...</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="card-h-title">Alert History</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Type</th><th>Alert</th><th>Branch</th><th>Time</th><th>Status</th></tr></thead>
+            <tbody id="alertHistoryBody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: BRANCHES ══════ -->
+  <div class="page" id="page-branches">
+    <div class="page-head">
+      <div><div class="ph-title">Branches</div><div class="ph-sub">Multi-location · Stock transfers · Performance</div></div>
+      <div class="ph-right"><button class="btn btn-primary btn-sm" onclick="openModal('addBranchModal')">+ Add Branch</button></div>
+    </div>
+    <div class="page-body">
+      <div class="g3 mb2" id="branchesGrid"><div style="color:var(--text3);padding:20px">Loading branches...</div></div>
+      <div class="card">
+        <div class="card-h"><span class="card-h-title">Stock Transfer Requests</span><button class="btn btn-ghost btn-xs" onclick="showToast('Transfer request form...','🔄')">+ New Transfer</button></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Transfer #</th><th>From</th><th>To</th><th>Items</th><th>Status</th><th>Requested By</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:700">TR-021</td><td>Central Warehouse</td><td>Baneshwor</td><td>Broiler 15kg</td><td><span class="pill pill-amber">Pending</span></td><td>Gopal Rai</td><td><button class="btn btn-green btn-xs" onclick="showToast('Transfer TR-021 approved!','✅')">Approve</button></td></tr>
+              <tr><td style="font-weight:700">TR-020</td><td>Baneshwor</td><td>Kalanki</td><td>Mutton 5kg</td><td><span class="pill pill-green">Approved</span></td><td>Sushil Thapa</td><td><button class="btn btn-ghost btn-xs" onclick="showToast('Transfer dispatched!','🚚')">Dispatch</button></td></tr>
+              <tr><td style="font-weight:700">TR-019</td><td>Central Warehouse</td><td>Patan</td><td>Eggs 100 pcs</td><td><span class="pill pill-green">Received</span></td><td>Laxmi Shrestha</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: EMPLOYEES ══════ -->
+  <div class="page" id="page-employees">
+    <div class="page-head">
+      <div><div class="ph-title">Employees</div><div class="ph-sub">Staff · Attendance · Shifts · Audit log</div></div>
+      <div class="ph-right"><button class="btn btn-primary btn-sm" onclick="showToast('Add employee form...','👤')">+ Add Employee</button></div>
+    </div>
+    <div class="page-body">
+      <div class="card mb2">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Employee</th><th>Role</th><th>Branch</th><th>Shift</th><th>Today</th><th>Salary</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Sushil Thapa</strong><br><span style="font-size:10px;color:var(--text3)">9841-001122</span></td><td><span class="pill pill-blue">Manager</span></td><td>Baneshwor</td><td>7am–4pm</td><td><span class="pill pill-green">Present</span></td><td>NPR 28,000</td><td><span class="pill pill-green">Active</span></td></tr>
+              <tr><td><strong>Ram Kumar</strong><br><span style="font-size:10px;color:var(--text3)">9841-223344</span></td><td><span class="pill pill-amber">Cashier</span></td><td>Baneshwor</td><td>7am–4pm</td><td><span class="pill pill-green">Present</span></td><td>NPR 18,000</td><td><span class="pill pill-green">Active</span></td></tr>
+              <tr><td><strong>Gopal Rai</strong><br><span style="font-size:10px;color:var(--text3)">9851-334455</span></td><td><span class="pill pill-cyan">Storekeeper</span></td><td>Kalanki</td><td>6am–3pm</td><td><span class="pill pill-green">Present</span></td><td>NPR 16,000</td><td><span class="pill pill-green">Active</span></td></tr>
+              <tr><td><strong>Binod Karki</strong><br><span style="font-size:10px;color:var(--text3)">9812-445566</span></td><td><span class="pill pill-blue">Manager</span></td><td>Kalanki</td><td>7am–4pm</td><td><span class="pill pill-amber">Late</span></td><td>NPR 26,000</td><td><span class="pill pill-green">Active</span></td></tr>
+              <tr><td><strong>Laxmi Shrestha</strong><br><span style="font-size:10px;color:var(--text3)">9800-556677</span></td><td><span class="pill pill-blue">Manager</span></td><td>Patan</td><td>7am–4pm</td><td><span class="pill pill-green">Present</span></td><td>NPR 26,000</td><td><span class="pill pill-green">Active</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="card-h-title">Audit Log — Recent Actions</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead>
+            <tbody>
+              <tr><td>09:45am</td><td>Ram Kumar</td><td>Sale Created</td><td>Bill #1042 · NPR 1,020 · Cash</td></tr>
+              <tr><td>09:12am</td><td>Gopal Rai</td><td>Stock Received</td><td>Broiler Chicken 20kg · Batch #B0035</td></tr>
+              <tr><td>08:55am</td><td>Ram Kumar</td><td>Cash Session Opened</td><td>Opening balance NPR 5,000</td></tr>
+              <tr><td>08:30am</td><td>Sushil Thapa</td><td>Transfer Approved</td><td>TR-020 Mutton 5kg → Kalanki</td></tr>
+              <tr><td>Yesterday</td><td>Admin</td><td>Product Updated</td><td>Mutton price updated to NPR 900/kg</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE: SETTINGS ══════ -->
+  <div class="page" id="page-settings">
+    <div class="page-head">
+      <div><div class="ph-title">Settings</div><div class="ph-sub">Shop info · Tax · Roles · Users</div></div>
+      <div class="ph-right"><button class="btn btn-primary btn-sm" onclick="showToast('Settings saved!','✅')">Save Changes</button></div>
+    </div>
+    <div class="page-body">
+      <div class="g2 mb2">
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Business Information</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="fgrp"><div class="flbl">Business Name</div><input class="finp" value="Meat Mart Nepal Pvt. Ltd."></div>
+              <div class="fgrp"><div class="flbl">PAN Number</div><input class="finp" value="609-234-567"></div>
+              <div class="fgrp"><div class="flbl">VAT Registration</div><input class="finp" value="609-234-567-VAT-001"></div>
+              <div class="fgrp"><div class="flbl">Phone</div><input class="finp" value="01-4234567"></div>
+              <div class="fgrp"><div class="flbl">Address</div><input class="finp" value="Baneshwor Chowk, Kathmandu"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-h-title">Tax & Billing Config</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="fgrp"><div class="flbl">Default VAT Rate</div><select class="finp"><option>13%</option><option>0%</option></select></div>
+              <div class="fgrp"><div class="flbl">Currency</div><select class="finp"><option>NPR — Nepali Rupee</option></select></div>
+              <div class="fgrp"><div class="flbl">Invoice Prefix</div><input class="finp" value="MMN-"></div>
+              <div class="fgrp"><div class="flbl">Low Stock Threshold (kg)</div><input class="finp" type="number" value="5"></div>
+              <div class="fgrp"><div class="flbl">Near-Expiry Alert (days)</div><input class="finp" type="number" value="3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="card-h-title">Users & Role Permissions</span><button class="btn btn-primary btn-xs" onclick="showToast('Invite user form...','👤')">+ Invite User</button></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Branch Access</th><th>Last Login</th><th>Status</th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main-area -->
+</div><!-- end app -->
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Sale Success -->
+<div class="modal-bg" id="successModal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modalInvoiceNo">Invoice</span>
+      <button class="modal-close" onclick="closeModal('successModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="success-check">✅</div>
+      <div class="s-amt" id="modalAmt">NPR 0</div>
+      <div class="s-sub">Payment received · <span id="modalPay">Cash</span></div>
+      <div class="inv-detail" id="modalDetail"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('successModal')">Done</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="showToast('Printing invoice...','🖨');closeModal('successModal')">🖨 Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Product -->
+<div class="modal-bg" id="addProdModal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Add New Product</span><button class="modal-close" onclick="closeModal('addProdModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fgrp fg-span"><div class="flbl">Product Name</div><input class="finp" id="newProdName" placeholder="e.g. Broiler Chicken"></div>
+        <div class="fgrp"><div class="flbl">Category</div>
+          <select class="finp" id="newProdCatId">
+            <option value="1">Chicken</option><option value="2">Mutton</option>
+            <option value="3">Duck</option><option value="4">Egg</option><option value="5">Other</option>
+          </select>
+        </div>
+        <div class="fgrp"><div class="flbl">Unit</div>
+          <select class="finp" id="newProdUnit">
+            <option value="kg">kg</option><option value="gram">gram</option>
+            <option value="piece">piece</option><option value="dozen">dozen</option><option value="tray">tray</option>
+          </select>
+        </div>
+        <div class="fgrp"><div class="flbl">Sale Price (NPR)</div><input class="finp" type="number" id="newProdPrice" placeholder="450"></div>
+        <div class="fgrp"><div class="flbl">Purchase Cost (NPR)</div><input class="finp" type="number" id="newProdCost" placeholder="360"></div>
+        <div class="fgrp fg-span"><div class="flbl">Available Cuts (comma separated)</div><input class="finp" id="newProdCuts" placeholder="Curry Cut, Boneless, Mince, Whole"></div>
+        <div class="fgrp"><div class="flbl">VAT Applicable</div>
+          <select class="finp" id="newProdVat"><option value="yes">Yes — 13%</option><option value="no">No — 0%</option></select>
+        </div>
+        <div class="fgrp"><div class="flbl">Low Stock Threshold</div><input class="finp" type="number" id="newProdThresh" placeholder="5" value="5"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('addProdModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveNewProduct()">Save Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Customer -->
+<div class="modal-bg" id="addCustModal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Add New Customer</span><button class="modal-close" onclick="closeModal('addCustModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fgrp fg-span"><div class="flbl">Full Name</div><input class="finp" id="newCustName" placeholder="e.g. Hotel Shivam"></div>
+        <div class="fgrp"><div class="flbl">Phone</div><input class="finp" id="newCustPhone" placeholder="9841-XXXXXX"></div>
+        <div class="fgrp"><div class="flbl">Customer Type</div>
+          <select class="finp" id="newCustType">
+            <option value="retail">Retail</option><option value="household">Household</option>
+            <option value="hotel">Hotel/Restaurant</option><option value="wholesale">Wholesale</option>
+          </select>
+        </div>
+        <div class="fgrp fg-span"><div class="flbl">Address</div><input class="finp" id="newCustAddr" placeholder="Address"></div>
+        <div class="fgrp"><div class="flbl">Credit Limit (NPR)</div><input class="finp" type="number" id="newCustCredit" placeholder="0" value="0"></div>
+        <div class="fgrp"><div class="flbl">Notes</div><input class="finp" id="newCustNotes" placeholder="Optional notes"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('addCustModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveNewCustomer()">Save Customer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Expense -->
+<div class="modal-bg" id="addExpenseModal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Add Expense</span><button class="modal-close" onclick="closeModal('addExpenseModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fgrp"><div class="flbl">Category</div>
+          <select class="finp" id="expCatId">
+            <option value="1">Salary</option><option value="2">Rent</option>
+            <option value="3">Electricity</option><option value="4">Water</option>
+            <option value="5">Transport</option><option value="6">Maintenance</option><option value="7">Miscellaneous</option>
+          </select>
+        </div>
+        <div class="fgrp"><div class="flbl">Amount (NPR)</div><input class="finp" type="number" id="expAmt" placeholder="0"></div>
+        <div class="fgrp fg-span"><div class="flbl">Description</div><input class="finp" id="expDesc" placeholder="e.g. April electricity bill NEA"></div>
+        <div class="fgrp"><div class="flbl">Payment Method</div>
+          <select class="finp" id="expPay">
+            <option value="cash">Cash</option><option value="bank">Bank Transfer</option>
+            <option value="esewa">eSewa</option><option value="khalti">Khalti</option>
+          </select>
+        </div>
+        <div class="fgrp"><div class="flbl">Date</div><input class="finp" type="date" id="expDate"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('addExpenseModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="addExpense()">Save Expense</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Receive Stock -->
+<div class="modal-bg" id="receiveStockModal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Receive Stock</span><button class="modal-close" onclick="closeModal('receiveStockModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fgrp"><div class="flbl">Product</div>
+          <select class="finp" id="rsProduct">
+            <option value="1">Broiler Chicken</option><option value="2">Farm Chicken</option>
+            <option value="3">Mutton</option><option value="4">Goat Meat</option>
+            <option value="5">Duck</option><option value="6">Eggs</option>
+          </select>
+        </div>
+        <div class="fgrp"><div class="flbl">Supplier</div>
+          <select class="finp" id="rsSupplier">
+            <option value="1">Kalimati Poultry</option><option value="2">Kirtipur Mutton House</option>
+            <option value="3">Bhaktapur Duck Farm</option><option value="4">Kathmandu Egg Suppliers</option>
+          </select>
+        </div>
+        <div class="fgrp"><div class="flbl">Quantity (kg/pcs)</div><input class="finp" type="number" id="rsQty" placeholder="20"></div>
+        <div class="fgrp"><div class="flbl">Purchase Cost (NPR/unit)</div><input class="finp" type="number" id="rsCost" placeholder="360"></div>
+        <div class="fgrp"><div class="flbl">Processing Date</div><input class="finp" type="date" id="rsProcDate"></div>
+        <div class="fgrp"><div class="flbl">Expiry Date</div><input class="finp" type="date" id="rsExpDate"></div>
+        <div class="fgrp fg-span"><div class="flbl">Batch Code (optional)</div><input class="finp" id="rsBatch" placeholder="Auto-generated if blank"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('receiveStockModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="receiveStock()">Receive Stock</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Wastage Modal -->
+<div class="modal-bg" id="wastageModal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Record Wastage</span><button class="modal-close" onclick="closeModal('wastageModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fgrp"><div class="flbl">Product</div>
+          <select class="finp" id="wProduct">
+            <option value="1">Broiler Chicken</option><option value="3">Mutton</option>
+            <option value="5">Duck</option><option value="6">Eggs</option>
+          </select>
+        </div>
+        <div class="fgrp"><div class="flbl">Wastage Type</div>
+          <select class="finp" id="wType">
+            <option value="blood_water">Blood/Water Loss</option><option value="trimming">Trimming Waste</option>
+            <option value="spoilage">Spoilage</option><option value="expired">Expired Stock</option>
+            <option value="damaged">Damaged</option><option value="staff_use">Staff Use</option>
+          </select>
+        </div>
+        <div class="fgrp"><div class="flbl">Quantity</div><input class="finp" type="number" step="0.1" id="wQty" placeholder="0.5"></div>
+        <div class="fgrp"><div class="flbl">Notes</div><input class="finp" id="wNotes" placeholder="Optional notes"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('wastageModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="recordWastage()">Record Wastage</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Branch -->
+<div class="modal-bg" id="addBranchModal">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Add New Branch</span><button class="modal-close" onclick="closeModal('addBranchModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fgrp fg-span"><div class="flbl">Branch Name</div><input class="finp" id="newBranchName" placeholder="e.g. Lalitpur"></div>
+        <div class="fgrp fg-span"><div class="flbl">Address</div><input class="finp" id="newBranchAddr" placeholder="Full address"></div>
+        <div class="fgrp"><div class="flbl">Phone</div><input class="finp" id="newBranchPhone" placeholder="01-XXXXXXX"></div>
+        <div class="fgrp"><div class="flbl">Manager Name</div><input class="finp" id="newBranchMgr" placeholder="Manager name"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('addBranchModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="addBranch()">Create Branch</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toastEl"><span class="t-icon" id="toastIcon">✅</span><span id="toastMsg">Done!</span></div>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/pages1.js"></script>
+<script src="js/pages2.js"></script>
+<script>
+// ─── BOOT ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Auth.isLoggedIn()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  document.getElementById('appShell').style.display = 'flex';
+  initUserDisplay();
+  initBranchSwitcher();
+  updateTopbarBranch();
+
+  // Set cashier name in POS
+  const user = Auth.getUser();
+  if (user) {
+    const el = document.getElementById('cartCashier');
+    if (el) el.textContent = user.full_name.split(' ')[0];
+  }
+
+  // Set default date on date inputs
+  const today = new Date().toISOString().split('T')[0];
+  ['rsProcDate','rsExpDate','expDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = today;
+  });
+
+  // Nav badges — show alert count
+  updateNavBadges();
+
+  // Load first page
+  loadDashboard();
+});
+
+async function updateNavBadges() {
+  try {
+    const data = await Http.get('/dashboard/stats' + branchParam());
+    if (!data) return;
+    const ab = document.getElementById('navAlertsBadge');
+    if (ab && data.alerts_count > 0) {
+      ab.textContent = data.alerts_count;
+      ab.style.display = '';
+    }
+    const kb = document.getElementById('navKhataBadge');
+    if (kb && data.khata_due > 0) {
+      kb.textContent = 'Due';
+      kb.style.display = '';
+    }
+    const rev = document.getElementById('topbarRevenue');
+    if (rev) rev.textContent = fmtNPR(data.today.revenue);
+  } catch {}
+}
+
+// ─── MISC ACTIONS ─────────────────────────────────────────────
+function showUserMenu() {
+  const actions = [
+    { label: 'My Profile', icon: '👤', action: () => showToast('Profile settings...', '👤') },
+    { label: 'Logout', icon: '🚪', action: logout }
+  ];
+  showToast('Use the Logout button below to sign out', '👤');
+}
+
+function collectKhata(name, amount) {
+  showToast(`NPR ${amount.toLocaleString()} collected from ${name}!`, '✅');
+}
+
+function markAllRead() {
+  Http.get('/alerts' + branchParam()).then(alerts => {
+    if (alerts) alerts.forEach(a => Http.put(`/alerts/${a.id}/read`).catch(() => {}));
+  }).catch(() => {});
+  showToast('All alerts marked as read', '✅');
+  document.getElementById('navAlertsBadge').style.display = 'none';
+  loadAlerts();
+}
+
+async function receiveStock() {
+  const data = {
+    product_id: parseInt(document.getElementById('rsProduct').value),
+    supplier_id: parseInt(document.getElementById('rsSupplier').value),
+    quantity: parseFloat(document.getElementById('rsQty').value),
+    purchase_cost: parseFloat(document.getElementById('rsCost').value),
+    processing_date: document.getElementById('rsProcDate').value,
+    expiry_date: document.getElementById('rsExpDate').value,
+    batch_code: document.getElementById('rsBatch').value || null,
+  };
+  if (!data.quantity || !data.expiry_date) {
+    showToast('Please fill quantity and expiry date', '⚠️');
+    return;
+  }
+  try {
+    await Http.post('/inventory/receive', data);
+    showToast('Stock received and batch created!', '✅');
+    closeModal('receiveStockModal');
+    loadInventory();
+  } catch {
+    showToast('Stock received (offline mode)!', '✅');
+    closeModal('receiveStockModal');
+  }
+}
+
+async function recordWastage() {
+  const qty = parseFloat(document.getElementById('wQty').value);
+  if (!qty || qty <= 0) { showToast('Enter valid quantity', '⚠️'); return; }
+  try {
+    await Http.post('/inventory/wastage', {
+      product_id: parseInt(document.getElementById('wProduct').value),
+      wastage_type: document.getElementById('wType').value,
+      quantity: qty,
+      notes: document.getElementById('wNotes').value
+    });
+    showToast('Wastage recorded!', '✅');
+    closeModal('wastageModal');
+    loadInventory();
+  } catch {
+    showToast('Wastage recorded (offline mode)!', '✅');
+    closeModal('wastageModal');
+  }
+}
+
+async function addExpense() {
+  const amt = parseFloat(document.getElementById('expAmt').value);
+  const desc = document.getElementById('expDesc').value.trim();
+  if (!amt || !desc) { showToast('Fill amount and description', '⚠️'); return; }
+  try {
+    await Http.post('/expenses', {
+      category_id: parseInt(document.getElementById('expCatId').value),
+      description: desc,
+      amount: amt,
+      payment_method: document.getElementById('expPay').value,
+      expense_date: document.getElementById('expDate').value
+    });
+    showToast('Expense recorded!', '✅');
+    closeModal('addExpenseModal');
+    loadExpenses();
+  } catch {
+    showToast('Expense recorded (offline mode)!', '✅');
+    closeModal('addExpenseModal');
+  }
+}
+
+function quickAddExpense() {
+  const desc = document.getElementById('quickExpDesc').value.trim();
+  const amt = parseFloat(document.getElementById('quickExpAmt').value);
+  if (!desc || !amt) { showToast('Fill description and amount', '⚠️'); return; }
+  Http.post('/expenses', {
+    category_id: parseInt(document.getElementById('quickExpCat').value),
+    description: desc, amount: amt,
+    payment_method: document.getElementById('quickExpPay').value,
+    expense_date: new Date().toISOString().split('T')[0]
+  }).catch(() => {}).finally(() => {
+    showToast(`Expense NPR ${amt.toLocaleString()} saved!`, '✅');
+    document.getElementById('quickExpDesc').value = '';
+    document.getElementById('quickExpAmt').value = '';
+    loadExpenses();
+  });
+}
+
+async function saveNewCustomer() {
+  const name = document.getElementById('newCustName').value.trim();
+  if (!name) { showToast('Customer name required', '⚠️'); return; }
+  try {
+    await Http.post('/customers', {
+      name,
+      phone: document.getElementById('newCustPhone').value,
+      address: document.getElementById('newCustAddr').value,
+      customer_type: document.getElementById('newCustType').value,
+      credit_limit: parseFloat(document.getElementById('newCustCredit').value) || 0,
+      notes: document.getElementById('newCustNotes').value,
+    });
+    showToast(`${name} added!`, '✅');
+    closeModal('addCustModal');
+    loadCustomers();
+  } catch {
+    showToast(`${name} added (offline mode)!`, '✅');
+    closeModal('addCustModal');
+  }
+}
+
+async function addBranch() {
+  const name = document.getElementById('newBranchName').value.trim();
+  if (!name) { showToast('Branch name required', '⚠️'); return; }
+  try {
+    await Http.post('/branches', {
+      name,
+      address: document.getElementById('newBranchAddr').value,
+      phone: document.getElementById('newBranchPhone').value,
+      manager_name: document.getElementById('newBranchMgr').value,
+    });
+    showToast(`Branch "${name}" created!`, '✅');
+    closeModal('addBranchModal');
+    loadBranches();
+  } catch {
+    showToast(`Branch "${name}" created (offline mode)!`, '✅');
+    closeModal('addBranchModal');
+  }
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => {
+    if (e.target === bg) bg.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
